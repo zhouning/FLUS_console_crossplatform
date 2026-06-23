@@ -1,0 +1,11 @@
+{
+  "name": "flus-console",
+  "version-string": "1.0.0",
+  "dependencies": [
+    {
+      "name": "gdal",
+      "default-features": false
+    }
+  ],
+  "builtin-baseline": "09633c52c68bfe64ab065aa8f4338b0be1bd048e"
+}

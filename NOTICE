@@ -1,0 +1,57 @@
+FLUS Console — Cross-platform Edition
+=====================================
+
+This repository contains a port of the FLUS (Future Land Use Simulation)
+console source code to a cross-platform build (CMake + standard C++14),
+based on the original Windows / Visual Studio source distribution released
+by the GeoSOS team at Sun Yat-sen University.
+
+
+Original FLUS source code and model
+-----------------------------------
+Copyright (c) GeoSOS team, Sun Yat-sen University.
+
+  Released for non-commercial academic research use, see:
+  http://www.geosimulation.cn/FLUS-source-code.html
+
+  "To better enable the FLUS model to serve related disciplines and
+   research areas, our team has decided to open-source the model for
+   non-commercial academic research purposes."
+
+Original authors (alphabetical, from the cited paper):
+  Chen Yimin, Li Shaoying, Li Xia, Liang Xun, Liu Xiaoping,
+  Ou Jinpei, Pei Fengsong, Wang Shaojian, Xu Xiaocong.
+
+Contact:
+  Prof. Xiaoping Liu — Liuxp3 [at] mail.sysu.edu.cn
+
+If you use this code in research, please cite:
+
+  Liu, X., Liang, X., Li, X., Xu, X., Ou, J., Chen, Y., Li, S.,
+  Wang, S., Pei, F. (2017). A future land use simulation model (FLUS)
+  for simulating multiple land use scenarios by coupling human and
+  natural effects. Landscape and Urban Planning, 168, 94–116.
+  https://doi.org/10.1016/j.landurbplan.2017.09.019
+
+
+ALGLIB (src/alglib/)
+--------------------
+Copyright (c) Sergey Bochkanov (ALGLIB project).
+Distributed under the GNU General Public License version 2 (GPL v2).
+See src/alglib/ap.h for the full license header.
+
+This repository bundles the ALGLIB sources unchanged from the original
+FLUS distribution.
+
+
+Cross-platform port (this repository)
+-------------------------------------
+The CMake build scripts, vcpkg manifest, the platform_compat.h shim, and
+the minimal source edits required to remove Windows-only constructs
+(windows.h, _tmain, _TCHAR, GetTickCount, <strstream>, stdafx.h) are
+provided as-is, with no algorithmic changes to the FLUS model.
+
+This port is offered under the same non-commercial academic research
+terms that apply to the upstream FLUS source it derives from. It does
+not, and cannot, grant any additional license to the underlying FLUS
+source code or the ALGLIB code.

@@ -1,0 +1,41 @@
+# Build artifacts
+build/
+*.exe
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.pdb
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*.cmake
+!CMakeLists.txt
+!vcpkg.json
+
+# vcpkg local cache
+vcpkg_installed/
+.vcpkg/
+
+# Logs
+*.log
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# User data (if any mistakenly placed here)
+*.tif
+*.tiff
+CCregionsimlog.txt
+CCregiontrainlogCC.txt
+CCregionMakovChain.csv
