@@ -174,8 +174,9 @@ CA 转移规则，但新增的 `FLUS_RANDOM_SEED` 会改变 ANN 采样和 CA 轮
 
 | 平台 | 编译器 | GDAL | 状态 |
 |---|---|---|---|
-| Windows 11 + MSVC v144 (VS 18 BuildTools) | cl 19.50 | 3.12.4 (vcpkg) | ✅ 已通过 |
-| macOS / Linux | clang / gcc | 3.x (Homebrew / apt) | ⏳ 设计兼容、待物理机验证 |
+| Windows 11 + MSVC v144 (VS 18 BuildTools) | cl 19.50 | 3.12.4 (vcpkg) | 已通过 |
+| macOS arm64 | AppleClang 21.0 | 3.12.3 (conda-forge) | 已通过；提交 `deb0a54` 重建结果与论文内置二进制 SHA-256 完全一致 |
+| Linux | gcc / clang | 3.x (apt / conda-forge) | 设计兼容、待物理机验证 |
 
 ---
 
