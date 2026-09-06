@@ -22,11 +22,30 @@ int main(int argc, char* argv[])
 	GDALAllRegister();
 	CPLSetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
 
-	//NNtrain* nn=new NNtrain("CCregiontrainlogCC.txt");
-	//nn->trainprocess();
+	if (argc >= 2 && std::string(argv[1]) == "train")
+	{
+		std::string trainConfig = argc >= 3 ? argv[2] : "CCregiontrainlogCC.txt";
+		NNtrain* nn=new NNtrain(trainConfig);
+		nn->trainprocess();
+		delete nn;
+		return 0;
+	}
+	if (argc >= 2 && std::string(argv[1]) == "train-update")
+	{
+		if (argc < 4)
+		{
+			std::cerr << "Usage: flus_console train-update <train-config> <update-csv>" << std::endl;
+			return 2;
+		}
+		NNtrain* nn=new NNtrain(argv[2], argv[3]);
+		nn->trainprocess();
+		delete nn;
+		return 0;
+	}
 
 	SimulationProcess* sp=new SimulationProcess("CCregionsimlog.txt","CCregionMakovChain.csv");
 	sp->runFLUS();
+	delete sp;
 
 	return 0;
 }

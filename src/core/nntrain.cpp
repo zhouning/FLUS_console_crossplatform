@@ -13,9 +13,37 @@
 #include <fstream>
 #include <iomanip>
 #include <algorithm>
+#include <cerrno>
+#include <climits>
+#include <cstdlib>
+#include <ctime>
 
 using namespace std;
 using namespace alglib;
+
+namespace {
+
+unsigned int resolveNNRandomSeed()
+{
+	const char* envSeed = getenv("FLUS_RANDOM_SEED");
+	if (envSeed != NULL && envSeed[0] != '\0')
+	{
+		char* end = NULL;
+		errno = 0;
+		unsigned long parsed = strtoul(envSeed, &end, 10);
+		if (errno == 0 && end != envSeed && *end == '\0' && parsed <= UINT_MAX)
+		{
+			cout<<"FLUS NN random seed: "<<parsed<<" (FLUS_RANDOM_SEED)"<<endl;
+			return static_cast<unsigned int>(parsed);
+		}
+		cout<<"Invalid FLUS_RANDOM_SEED '"<<envSeed<<"'; falling back to time seed"<<endl;
+	}
+	unsigned int seed = static_cast<unsigned int>(time(NULL));
+	cout<<"FLUS NN random seed: "<<seed<<" (time)"<<endl;
+	return seed;
+}
+
+}
 
 vector<string> split(const string& src, string separate_character)  
 {  
@@ -44,6 +72,7 @@ NNtrain::NNtrain(string _configimage,string _updatefile)
 {
 	configimage=_configimage;
 	updatefile=_updatefile;
+	isUpdateData=false;
 	init();
 	isUpdateData=true;
 
@@ -79,7 +108,7 @@ NNtrain::NNtrain(string _configimage,string _updatefile)
 
 void NNtrain::init()
 {
-	
+	isNoDataExit=true;
 
 	getAllParameter();
 
@@ -1552,7 +1581,7 @@ void coorPushback(vector<Coor> &vecCoor,const int &_row,const int &_col)
 bool NNtrain::setRandomPoint(bool _stra)
 {
 
-	srand((unsigned)time(NULL));
+	srand(resolveNNRandomSeed());
 
 	numof=0;
 
@@ -1682,4 +1711,3 @@ size_t NNtrain::randomFunction( size_t _lon )
 
 	return inrp;
 }
-

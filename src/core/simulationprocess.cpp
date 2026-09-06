@@ -8,6 +8,10 @@
 #include <fstream>
 #include "platform_compat.h"
 #include <assert.h>
+#include <cerrno>
+#include <climits>
+#include <cstdlib>
+#include <ctime>
 
 #ifdef _RANK
 #include <opencv2/opencv.hpp>
@@ -23,6 +27,41 @@ using namespace cv;
 #include<numeric>
 
 using namespace std;
+
+namespace {
+
+unsigned int resolveRandomSeed()
+{
+	const char* envSeed = getenv("FLUS_RANDOM_SEED");
+	if (envSeed != NULL && envSeed[0] != '\0')
+	{
+		char* end = NULL;
+		errno = 0;
+		unsigned long parsed = strtoul(envSeed, &end, 10);
+		if (errno == 0 && end != envSeed && *end == '\0' && parsed <= UINT_MAX)
+		{
+			cout<<"FLUS random seed: "<<parsed<<" (FLUS_RANDOM_SEED)"<<endl;
+			return static_cast<unsigned int>(parsed);
+		}
+		cout<<"Invalid FLUS_RANDOM_SEED '"<<envSeed<<"'; falling back to time seed"<<endl;
+	}
+	unsigned int seed = static_cast<unsigned int>(time(NULL));
+	cout<<"FLUS random seed: "<<seed<<" (time)"<<endl;
+	return seed;
+}
+
+void seedRandomOnce()
+{
+	static bool seeded = false;
+	if (seeded)
+	{
+		return;
+	}
+	srand(resolveRandomSeed());
+	seeded = true;
+}
+
+}
 
 
 SimulationProcess::SimulationProcess(string _configfile)
@@ -804,9 +843,7 @@ bool SimulationProcess::imageOpenConver2uchar(string filename)
 
 void SimulationProcess::startloop()
 {
-	time_t t = time(NULL); 
-
-	srand(t);
+	seedRandomOnce();
 	
 	bool _isStatus=getparameters();
 
@@ -851,8 +888,7 @@ void SimulationProcess::runloop2()
 	int stasticHistroyDis=0;
 	bool isSwitchIniYear=false;
 
-	time_t t = time(NULL); 
-	srand(t);
+	seedRandomOnce();
 	start=GetTickCount();  
 	adjustment=new double[nType];
 	initialDist=new double[nType];
@@ -1563,4 +1599,3 @@ void SimulationProcess::runloop2()
 	delete []t_filecost;
 
 }
-

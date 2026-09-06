@@ -44,14 +44,25 @@ This repository bundles the ALGLIB sources unchanged from the original
 FLUS distribution.
 
 
-Cross-platform port (this repository)
--------------------------------------
+Cross-platform port and author-modified build (this repository)
+---------------------------------------------------------------
 The CMake build scripts, vcpkg manifest, the platform_compat.h shim, and
-the minimal source edits required to remove Windows-only constructs
+the portability edits required to remove Windows-only constructs
 (windows.h, _tmain, _TCHAR, GetTickCount, <strstream>, stdafx.h) are
-provided as-is, with no algorithmic changes to the FLUS model.
+provided here together with an author-modified command-line build.
 
-This port is offered under the same non-commercial academic research
-terms that apply to the upstream FLUS source it derives from. It does
-not, and cannot, grant any additional license to the underlying FLUS
-source code or the ALGLIB code.
+The author modifications are deliberately limited in scope but are not
+algorithmically neutral: (1) `train` and `train-update` command-line
+subcommands expose the ANN training/update entry points used by the
+reproducible benchmark, and (2) `FLUS_RANDOM_SEED` deterministically seeds
+the ANN sampling stage and the CA roulette stage, with a time-based seed as
+the fallback when the variable is absent or invalid. These changes alter
+the execution interface and random stream relative to the GeoSOS release;
+they do not claim to be part of the upstream FLUS implementation.
+
+This repository is offered under the same non-commercial academic research
+terms that apply to the upstream FLUS source it derives from. It does not,
+and cannot, grant any additional license to the underlying FLUS source code
+or the ALGLIB code. The author-modified changes are provided for transparent
+reconstruction of the accompanying benchmark and should not be read as an
+official GeoSOS release.

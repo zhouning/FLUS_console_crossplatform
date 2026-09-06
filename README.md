@@ -3,10 +3,11 @@
 跨平台版本的 FLUS（Future Land Use Simulation）控制台程序，基于原 Windows
 Visual Studio 工程改造而来，可在 macOS / Linux / Windows 上构建运行。
 
-> ⚠️ **本仓库不是 FLUS 的原作者发布。** 仅是对 GeoSOS 团队公开发布的
-> FLUS console 源码做了跨平台移植（去 `windows.h`、`_tmain`、`GetTickCount`、
-> `<strstream>`、Visual Studio 工程文件等），并改用 CMake 构建系统。
-> 算法、模型、ALGLIB 集成与所有核心实现均由原作者完成；本仓库不修改算法。
+> ⚠️ **本仓库不是 FLUS 的原作者发布。** 它以 GeoSOS 团队公开发布的
+> FLUS console 源码为基础，包含跨平台移植和用于可复现实验的作者修改。
+> 基础 ANN–CA 算法来自 GeoSOS；作者修改新增了 `train` / `train-update`
+> 命令行入口，并支持 `FLUS_RANDOM_SEED` 对 ANN 和 CA 阶段确定性播种。
+> 因此本仓库不能被描述为“算法一行未改”的官方上游版本。
 
 ---
 
@@ -153,6 +154,19 @@ cd /path/to/your/data    # 包含 *.tif、CCregionsimlog.txt、CCregionMakovChai
 - `CCregionMakovChain.csv` — 多年需求 / Markov 链表
 
 如需，请从 GeoSOS 官网下载原始 `FLUS_source_code` 包获取示例数据。
+
+训练命令可以显式指定训练配置。若要使用同一个网络对另一组、尺寸一致的驱动因子
+生成适宜性概率，可额外传入更新表；更新表每行格式为 `原驱动因子序号,新栅格路径`：
+
+```bash
+flus_console train CCregiontrainlogCC.txt
+flus_console train-update CCregiontrainlogCC.txt update_drivers.csv
+```
+
+`train-update` 暴露原始 `NNtrain(config, update)` 接口；它不改变网络结构或
+CA 转移规则，但新增的 `FLUS_RANDOM_SEED` 会改变 ANN 采样和 CA 轮盘赌的
+随机流。论文应将本程序称为 **GeoSOS-derived FLUS-style ANN–CA console
+(author-modified build)**，而不是官方 GeoSOS 可执行文件。
 
 ---
 
