@@ -175,7 +175,7 @@ CA 转移规则，但新增的 `FLUS_RANDOM_SEED` 会改变 ANN 采样和 CA 轮
 
 | 平台 | 编译器 | GDAL | 状态 |
 |---|---|---|---|
-| Windows 11 + MSVC v144 (VS 18 BuildTools) | cl 19.50 | 3.12.4 (vcpkg) | 已通过；需纯 ASCII 基准路径 |
+| Windows 11 + MSVC v144 (VS 18 BuildTools) | cl 19.5x (19.50–19.51) | 3.12.4 (vcpkg) | 已通过；需纯 ASCII 基准路径 |
 | macOS arm64 | AppleClang 21.0 | 3.12.3 (conda-forge) | 已通过；提交 `deb0a54` 重建结果与论文内置二进制 SHA-256 一致（作者自证） |
 | Linux | gcc / clang | 3.x (apt / conda-forge) | 设计兼容、待物理机验证 |
 
@@ -188,6 +188,22 @@ CA 转移规则，但新增的 `FLUS_RANDOM_SEED` 会改变 ANN 采样和 CA 轮
 整数种子不保证在 macOS、Linux 和 MSVC 上产生相同随机流或逐像元结果。论文基准
 的 macOS arm64 与 Windows x86_64 复核显示，七驱动控制的跨平台差异约为
 2–4% 有效像元；25 特征匹配模式在 Windows 的三个种子均退化为零变化。
+
+## Abu Dhabi benchmark releases
+
+- `paper-benchmark-flus-v1` points to `deb0a54`, the source provenance for the
+  original valid-input benchmark binary.
+- `paper-benchmark-flus-v1.1` points to `47e65b3`. It adds fail-closed handling
+  for invalid training, driver-update and simulation inputs: an invalid read
+  terminates with exit code 3 rather than continuing into an invalid state.
+
+Version v1.1 does not change the valid-input ANN or CA algorithmic path. On
+macOS arm64, the v1.1 rebuild reproduced the Abu Dhabi `baseline_7`, seed-31
+2023 and 2024 prediction GeoTIFFs byte for byte (SHA-256 respectively
+`45a5f319c87599adca867255dfd3699c6477b2fc14bf854197ae878625d86d64` and
+`c4ebfa6bc640ab5ebceb003a9253ec63d875c04431048b75d2c25f1728b16287`). The
+benchmark manuscript therefore cites v1.1 as the retained source release while
+preserving v1 binary provenance in the archived output reports.
 
 ## 已知事项
 
