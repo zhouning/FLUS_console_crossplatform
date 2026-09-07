@@ -30,6 +30,7 @@ public:
 	NNtrain(string _configimage);
 	NNtrain(string _configimage,string _updatefile);
 	~NNtrain();
+	bool ready() const;
 
 public:
 	void trainprocess();
@@ -106,6 +107,7 @@ private:
 
 	string configimage;
 	string updatefile;
+	bool initializationSucceeded;
 
 };
 

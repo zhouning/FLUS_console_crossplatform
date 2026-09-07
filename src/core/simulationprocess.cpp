@@ -70,13 +70,17 @@ SimulationProcess::SimulationProcess(string _configfile)
 	configfile=_configfile;
 	isMultGoal=false;
 
-	if (!readImageData())
+	if (!readImageData() || imgList.empty())
+	{
 		cout << "read image error"<<endl;
+		return;
+	}
 
 	_rows=imgList[0]->rows();
 	_cols=imgList[0]->cols();
 	isbreak=0;
 	temp = new unsigned char[_cols*_rows];
+	initializationSucceeded=true;
 }
 
 SimulationProcess::SimulationProcess(string _configfile,string _demandfile)
@@ -86,13 +90,17 @@ SimulationProcess::SimulationProcess(string _configfile,string _demandfile)
 	demandfile=_demandfile;
 	isMultGoal=true;
 
-	if (!readImageData())
+	if (!readImageData() || imgList.empty())
+	{
 		cout << "read image error"<<endl;
+		return;
+	}
 
 	_rows=imgList[0]->rows();
 	_cols=imgList[0]->cols();
 	isbreak=0;
 	temp = new unsigned char[_cols*_rows];
+	initializationSucceeded=true;
 }
 
 template<typename T>
@@ -342,10 +350,15 @@ void icvprLabelColor(const cv::Mat& _labelImg, cv::Mat& _colorLabelImg)
  
 #endif
 
-void SimulationProcess::runFLUS()
+bool SimulationProcess::runFLUS()
 {
-	startloop();
+	if (!ready() || !startloop())
+	{
+		cout<<"FLUS initialization failed"<<endl;
+		return false;
+	}
 	runloop2();
+	return true;
 }
 
 SimulationProcess::~SimulationProcess()
@@ -356,6 +369,7 @@ SimulationProcess::~SimulationProcess()
 
 void SimulationProcess::init()
 {
+	initializationSucceeded=false;
 	goalNum=NULL;
 	saveCount=NULL;
 	mIminDis2goal=NULL;
@@ -368,6 +382,11 @@ void SimulationProcess::init()
 	normalProbability=NULL;
 	mdNeighIntensity=NULL;
 	isSave=false;
+}
+
+bool SimulationProcess::ready() const
+{
+	return initializationSucceeded;
 }
 
 ///
@@ -456,7 +475,11 @@ bool SimulationProcess::getparameters()
 
 	ifstream infile; 
 	infile.open(configfile.c_str());
-	assert(infile.is_open());
+	if (!infile.is_open())
+	{
+		cout<<"read simulation config file error"<<endl;
+		return false;
+	}
 
 	string str;
 	while(getline(infile,str))
@@ -743,8 +766,15 @@ void SimulationProcess::savePatchGeoImage(string filename,Mat labelImg)
 
 bool SimulationProcess::readImageData()
 {
-	bool bRlt=false;
+	bool bRlt=true;
+	bool foundLandUse=false;
+	bool foundProbability=false;
 	ifstream file(configfile.c_str());
+	if (!file.is_open())
+	{
+		cout<<"read simulation config file error"<<endl;
+		return false;
+	}
 
 	string str;
 	while(getline(file,str))
@@ -752,12 +782,14 @@ bool SimulationProcess::readImageData()
 		if (str=="[Path of land use data]")
 		{
 			getline(file,str);
-			bRlt=imageOpenConver2uchar(str.c_str());
+			foundLandUse=true;
+			bRlt = imageOpenConver2uchar(str.c_str()) && bRlt;
 		}
 		if (str=="[Path of probability data]")
 		{
 			getline(file,str);
-			bRlt=imageOpen(str.c_str());
+			foundProbability=true;
+			bRlt = imageOpen(str.c_str()) && bRlt;
 		}
 		if (str == "[Path of simulation result]")
 		{
@@ -774,19 +806,19 @@ bool SimulationProcess::readImageData()
 			else
 			{
 				isRestrictExit=true;
-				bRlt=imageOpenConver2uchar(str.c_str());
+					bRlt = imageOpenConver2uchar(str.c_str()) && bRlt;
 			}
 		}
 
 	}
 	file.close();
 
-	if (!bRlt)
+	if (!bRlt || !foundLandUse || !foundProbability)
 	{
 		cout<<"Read image error"<<endl;
 	}
 
-	return bRlt;
+	return bRlt && foundLandUse && foundProbability;
 }
 
 bool SimulationProcess::imageOpen(string filename)
@@ -841,7 +873,7 @@ bool SimulationProcess::imageOpenConver2uchar(string filename)
 	return true;
 }
 
-void SimulationProcess::startloop()
+bool SimulationProcess::startloop()
 {
 	seedRandomOnce();
 	
@@ -850,7 +882,7 @@ void SimulationProcess::startloop()
 	if (_isStatus!=true)
 	{
 		cout<<"Get Parameter Error";
-		return;
+		return false;
 	}
 
 	getcellstatistic();
@@ -864,6 +896,7 @@ void SimulationProcess::startloop()
 		sendInfo = sendInfo + num2string(saveCount[ii])+  ","; 
 	}
 	cout<<sendInfo.substr(0,sendInfo.length()-1)<<endl;
+	return true;
 }
 
 void SimulationProcess::runloop2()

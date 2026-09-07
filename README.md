@@ -46,7 +46,8 @@ purposes"，原文见下方"Source"链接）。本仓库继承同样的使用范
 
 ## 与原 Windows 工程的差异
 
-仅做最小的可移植化改动；FLUS 的算法逻辑一行未改。
+保留 GeoSOS 的 ANN–CA 算法核心，并加入明确标注的可复现实验修改；这些修改
+改变命令行入口和随机流，不能再表述为“算法逻辑一行未改”。
 
 | 项目 | 原版本 | 跨平台版本 |
 |---|---|---|
@@ -56,7 +57,7 @@ purposes"，原文见下方"Source"链接）。本仓库继承同样的使用范
 | 计时 | `GetTickCount()` (winmm) | `std::chrono::steady_clock`，封装在 `platform_compat.h` 里以同名函数对外，调用点不变 |
 | 已弃用流 | `<strstream>` | `<sstream>` |
 | 头文件大小写 | `<LinAlg.h>` | `<linalg.h>`（适配 case-sensitive 文件系统） |
-| GDAL 路径编码 | `GDAL_FILENAME_IS_UTF8 = NO` | `GDAL_FILENAME_IS_UTF8 = YES`（macOS / Linux 原生 UTF-8） |
+| GDAL 路径编码 | `GDAL_FILENAME_IS_UTF8 = NO` | 保留部分旧调用；Windows 构建要求基准目录使用纯 ASCII 路径 |
 | `system("pause")` | 有 | 已删除 |
 | 构建系统 | `.vcxproj` (MSBuild) | `CMakeLists.txt` |
 
@@ -174,11 +175,19 @@ CA 转移规则，但新增的 `FLUS_RANDOM_SEED` 会改变 ANN 采样和 CA 轮
 
 | 平台 | 编译器 | GDAL | 状态 |
 |---|---|---|---|
-| Windows 11 + MSVC v144 (VS 18 BuildTools) | cl 19.50 | 3.12.4 (vcpkg) | 已通过 |
-| macOS arm64 | AppleClang 21.0 | 3.12.3 (conda-forge) | 已通过；提交 `deb0a54` 重建结果与论文内置二进制 SHA-256 完全一致 |
+| Windows 11 + MSVC v144 (VS 18 BuildTools) | cl 19.50 | 3.12.4 (vcpkg) | 已通过；需纯 ASCII 基准路径 |
+| macOS arm64 | AppleClang 21.0 | 3.12.3 (conda-forge) | 已通过；提交 `deb0a54` 重建结果与论文内置二进制 SHA-256 一致（作者自证） |
 | Linux | gcc / clang | 3.x (apt / conda-forge) | 设计兼容、待物理机验证 |
 
 ---
+
+## 随机性与跨平台复现
+
+`FLUS_RANDOM_SEED` 保证同一平台、同一构建环境下的确定性。ANN 采样和 CA
+轮盘赌使用 C 标准库 `rand()` / `srand()`；其序列由平台运行库定义，因此同一
+整数种子不保证在 macOS、Linux 和 MSVC 上产生相同随机流或逐像元结果。论文基准
+的 macOS arm64 与 Windows x86_64 复核显示，七驱动控制的跨平台差异约为
+2–4% 有效像元；25 特征匹配模式在 Windows 的三个种子均退化为零变化。
 
 ## 已知事项
 
@@ -187,7 +196,9 @@ CA 转移规则，但新增的 `FLUS_RANDOM_SEED` 会改变 ANN 采样和 CA 轮
   功能完全不受影响。
 - 原 ALGLIB 注释中含 GBK 字符（被 `/utf-8` 检测为非 UTF-8 后会报 C4828
   警告），是良性的，可忽略。
-- 中文路径配置时，请确保配置文件以 UTF-8 编码保存。
+- Windows 上请将基准数据、配置文件和工作目录放在纯 ASCII 路径；仅将配置文件
+  保存为 UTF-8 不能修复 GDAL 路径被本地代码页解读的问题。读取失败现在会返回
+  非零状态并停止，不再继续执行到空指针访问。
 - `_RANK` 分支保持原样，未启用。如需在跨平台环境启用，需把代码迁移到
   OpenCV 4 的 `cv::connectedComponents` API。
 

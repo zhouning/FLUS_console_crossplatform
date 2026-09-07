@@ -26,6 +26,11 @@ int main(int argc, char* argv[])
 	{
 		std::string trainConfig = argc >= 3 ? argv[2] : "CCregiontrainlogCC.txt";
 		NNtrain* nn=new NNtrain(trainConfig);
+		if (!nn->ready())
+		{
+			delete nn;
+			return 3;
+		}
 		nn->trainprocess();
 		delete nn;
 		return 0;
@@ -38,14 +43,19 @@ int main(int argc, char* argv[])
 			return 2;
 		}
 		NNtrain* nn=new NNtrain(argv[2], argv[3]);
+		if (!nn->ready())
+		{
+			delete nn;
+			return 3;
+		}
 		nn->trainprocess();
 		delete nn;
 		return 0;
 	}
 
 	SimulationProcess* sp=new SimulationProcess("CCregionsimlog.txt","CCregionMakovChain.csv");
-	sp->runFLUS();
+	bool ok=sp->runFLUS();
 	delete sp;
 
-	return 0;
+	return ok ? 0 : 3;
 }

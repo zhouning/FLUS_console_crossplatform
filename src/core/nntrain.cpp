@@ -65,6 +65,7 @@ NNtrain::NNtrain(string _configimage)
 {
 	configimage=_configimage;
 	isUpdateData=false;
+	initializationSucceeded=false;
 	init();
 }
 
@@ -73,7 +74,12 @@ NNtrain::NNtrain(string _configimage,string _updatefile)
 	configimage=_configimage;
 	updatefile=_updatefile;
 	isUpdateData=false;
+	initializationSucceeded=false;
 	init();
+	if (!initializationSucceeded)
+	{
+		return;
+	}
 	isUpdateData=true;
 
 	cout<<"\nload update data\n"<<endl;
@@ -81,12 +87,24 @@ NNtrain::NNtrain(string _configimage,string _updatefile)
 	bool bRlt;
 	if (isUpdateData==true)
 	{
-		ifstream fileu(updatefile.c_str());
+			ifstream fileu(updatefile.c_str());
+			if (!fileu)
+			{
+				cout<<"read update file error!!!"<<endl;
+				initializationSucceeded=false;
+				return;
+			}
 
 		string str;
-		while (getline(fileu,str)) 
-		{
-			vector<string> strlist=split(str, ",");
+			while (getline(fileu,str))
+			{
+				vector<string> strlist=split(str, ",");
+				if (strlist.size() < 2)
+				{
+					cout<<"invalid update row"<<endl;
+					initializationSucceeded=false;
+					return;
+				}
 			if (strlist[1]!="Add Factors(Optional)" ) 
 			{
 				redata1 reda;
@@ -97,8 +115,13 @@ NNtrain::NNtrain(string _configimage,string _updatefile)
 		}
 		for (int ii=0;ii<qlredat.size();ii++)
 		{
-			string tmp=qlredat.at(ii).str;
-			bRlt=imageOpen(tmp.c_str());
+				string tmp=qlredat.at(ii).str;
+				bRlt=imageOpen(tmp.c_str());
+				if (!bRlt)
+				{
+					initializationSucceeded=false;
+					return;
+				}
 		}
 
 	}
@@ -108,9 +131,14 @@ NNtrain::NNtrain(string _configimage,string _updatefile)
 
 void NNtrain::init()
 {
+	initializationSucceeded=false;
 	isNoDataExit=true;
 
-	getAllParameter();
+	if (!getAllParameter() || imgList.empty() || divingList.empty())
+	{
+		cout<<"FLUS training initialization failed"<<endl;
+		return;
+	}
 
 	nWidth=imgList[0]->cols();
 	nHeight=imgList[0]->rows();
@@ -127,6 +155,12 @@ void NNtrain::init()
 	f_allBandData_update=NULL;
 	d_allBandData_update=NULL;
 	us_allBandData_update=NULL;
+	initializationSucceeded=true;
+}
+
+bool NNtrain::ready() const
+{
+	return initializationSucceeded;
 }
 
 template<typename T>
@@ -213,8 +247,15 @@ bool NNtrain::getAllParameter()
 		{
 			getline(filem,str);
 			bRlt=imageOpenConver2uchar(str.c_str());
+			if (!bRlt)
+			{
+				return false;
+			}
 			countRight++;
-			getcellstatistic();
+			if (!getcellstatistic() || imgList.empty())
+			{
+				return false;
+			}
 			noDataValue=imgList[0]->poDataset()->GetRasterBand(1)->GetNoDataValue();
 		}
 		if (str=="[Path of saving data]" )
@@ -234,8 +275,12 @@ bool NNtrain::getAllParameter()
 			for (int ii=0;ii<numofdf;ii++)
 			{
 				getline(filem,str);
-				pathofdivingfactor.push_back(str);
-				bRlt=imageOpen(pathofdivingfactor[pathofdivingfactor.size()-1].c_str());
+					pathofdivingfactor.push_back(str);
+					bRlt=imageOpen(pathofdivingfactor[pathofdivingfactor.size()-1].c_str());
+					if (!bRlt)
+					{
+						return false;
+					}
 			}
 			countRight++;
 		}

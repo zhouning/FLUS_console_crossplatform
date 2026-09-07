@@ -28,7 +28,8 @@ class SimulationProcess
 public:
 	SimulationProcess(string _configfile);
 	SimulationProcess(string _configfile,string _demandfile);
-	void runFLUS();
+	bool runFLUS();
+	bool ready() const;
 	~SimulationProcess();
 
 
@@ -37,7 +38,7 @@ private:
 	bool readImageData();
 	bool imageOpen(string filename);
 	bool imageOpenConver2uchar(string filename);
-	void startloop();
+	bool startloop();
 	void runloop2();
 	bool getparameters();
 	bool getcellstatistic();
@@ -84,6 +85,7 @@ protected:
 	double** t_filecost;
 	int** direction;
 	short** Colour;
+	bool initializationSucceeded;
 
 };
 
